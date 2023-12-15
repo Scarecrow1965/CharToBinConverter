@@ -1,6 +1,6 @@
-.pio/build/esp32doit-devkit-v1/lib72f/U8g2/U8g2lib.cpp.o: \
- .pio/libdeps/esp32doit-devkit-v1/U8g2/src/U8g2lib.cpp \
- .pio/libdeps/esp32doit-devkit-v1/U8g2/src/U8g2lib.h \
+.pio/build/esp32doit-devkit-v1/lib72f/U8g2/U8x8lib.cpp.o: \
+ .pio/libdeps/esp32doit-devkit-v1/U8g2/src/U8x8lib.cpp \
+ .pio/libdeps/esp32doit-devkit-v1/U8g2/src/U8x8lib.h \
  C:/Users/steph/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h \
  C:/Users/steph/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp_arduino_version.h \
  C:/Users/steph/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/freertos/include/freertos/FreeRTOS.h \
@@ -134,7 +134,8 @@
  C:/Users/steph/.platformio/packages/framework-arduinoespressif32/cores/esp32/io_pin_remap.h \
  C:/Users/steph/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h \
  C:/Users/steph/.platformio/packages/framework-arduinoespressif32/cores/esp32/Print.h \
- .pio/libdeps/esp32doit-devkit-v1/U8g2/src/U8x8lib.h \
  .pio/libdeps/esp32doit-devkit-v1/U8g2/src/clib/u8x8.h \
- .pio/libdeps/esp32doit-devkit-v1/U8g2/src/clib/u8g2.h \
- .pio/libdeps/esp32doit-devkit-v1/U8g2/src/clib/u8x8.h
+ C:/Users/steph/.platformio/packages/framework-arduinoespressif32/libraries/SPI/src/SPI.h \
+ C:/Users/steph/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal-spi.h \
+ C:/Users/steph/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src/Wire.h \
+ C:/Users/steph/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal.h
