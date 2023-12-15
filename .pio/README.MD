@@ -1,0 +1,1 @@
+These folders contain the platformIO files it needs to compile and upload to the ESP 32
