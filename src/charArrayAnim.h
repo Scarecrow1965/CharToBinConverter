@@ -3251,11 +3251,11 @@ Animation charArrayAnimation[5]{
 
 // char array animations long filename array for ESP 32
 // Animation charArrayAnimation[5]{
-//     {ambulance_Anim[0], height_width2, height_width2, "Ambulance", sizeof(ambulance_Anim[0]), "/amb_Anim.bin", 350},
-//     {download_Anim[0], height_width1, height_width1, "Download", sizeof(download_Anim[0]), "/dwnlAnim.bin", 288},
-//     {upload_Anim[0], height_width1, height_width1, "Upload", sizeof(upload_Anim[0]), "/upldAnim.bin", 288},
-//     {heartbeat1_Anim[0], height_width2, height_width2, "Black Heartbeat", sizeof(heartbeat1_Anim[0]), "/hblkAnim.bin", 350},
-//     {heartbeat2_Anim[0], height_width2, height_width2, "White Heartbeat", sizeof(heartbeat2_Anim[0]), "/hbwhAnim.bin", 350},
+//     {ambulance_Anim[0], height_width2, height_width2, "Ambulance", sizeof(ambulance_Anim[0]), "/ambulance_Anim.bin", 350},
+//     {download_Anim[0], height_width1, height_width1, "Download", sizeof(download_Anim[0]), "/download_Anim.bin", 288},
+//     {upload_Anim[0], height_width1, height_width1, "Upload", sizeof(upload_Anim[0]), "/upload_Anim.bin", 288},
+//     {heartbeat1_Anim[0], height_width2, height_width2, "Black Heartbeat", sizeof(heartbeat1_Anim[0]), "/heartbeat_black_kAnim.bin", 350},
+//     {heartbeat2_Anim[0], height_width2, height_width2, "White Heartbeat", sizeof(heartbeat2_Anim[0]), "/heartbeat_white_Anim.bin", 350},
 // };
 
 // ===================================================================================================================================================
