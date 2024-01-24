@@ -1,0 +1,535 @@
+// +-------------------------------------------------------------
+//
+// Equipment:
+// ESP32, OLED SSD1306
+//
+// File: main.cpp
+//
+// Description:
+//
+// file to convert char array graphics and animations into binary file
+// with the help of GitHub Copilot
+//
+// History:     4-Dec-2023     Scarecrow1965   Created
+//
+// +-------------------------------------------------------------
+
+#include <Arduino.h>
+#include <Wire.h>
+#include <U8g2lib.h>
+#include <Adafruit_SSD1306.h>
+#include <adafruit_gfx.h>
+
+#include <SPI.h>
+#include <SD.h>
+#include <TimeLib.h>
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <algorithm>
+
+
+#define OLED_CLOCK 17 // SCA pin on Display = SCL on ESP32
+#define OLED_DATA 20  // SDL pin on display = SDA on ESP32
+U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, OLED_CLOCK, OLED_DATA, U8X8_PIN_NONE); // This works but according to the function, it shouldn't
+uint8_t oled_LineH = 0;
+
+// #define LED_BUILTIN 2 // pin for onboard LED or use LED_BUILTIN as the default location
+bool bLED = LOW;
+
+#define SCREEN_I2C_ADDR 0x3C // or 0x3C
+#define SCREEN_WIDTH 128     // OLED display width, in pixels
+#define SCREEN_HEIGHT 64     // OLED display height, in pixels
+#define OLED_RST_PIN -1      // Reset pin (-1 if not available)
+Adafruit_SSD1306 display(128, 64, &Wire, OLED_RST_PIN);
+
+#define SCK 17
+#define MISO 19
+#define MOSI 23
+#define CS 5
+
+const char *file0 = "/";
+File file; // this instance is for normal file manipulation
+SPIClass spi = SPIClass(VSPI);
+
+const unsigned char ambulance_Anim[28][350] PROGMEM = {{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}};
+const unsigned char download_Anim[28][288] PROGMEM = {{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}};
+const unsigned char upload_Anim[28][288] PROGMEM = {{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}};
+const unsigned char heartbeat1_Anim[28][350] PROGMEM = {{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}};
+const unsigned char heartbeat2_Anim[28][350] PROGMEM = {{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}};
+const unsigned char adhd_Logo[350] PROGMEM = {};
+const unsigned char arduino_Logo[1024] PROGMEM = {};
+const unsigned char arduino_Logo2[350] PROGMEM = {};
+const unsigned char amd_Logo[350] PROGMEM = {};
+const unsigned char autism_Logo[350] PROGMEM = {};
+const unsigned char c_plus_plus_Logo[350] PROGMEM = {};
+const unsigned char codepen_Logo[350] PROGMEM = {};
+const unsigned char css3_Logo[350] PROGMEM = {};
+const unsigned char docker_Logo[350] PROGMEM = {};
+const unsigned char git_Logo[350] PROGMEM = {};
+const unsigned char github_Logo[350] PROGMEM = {};
+const unsigned char html5_Logo[350] PROGMEM = {};
+const unsigned char java_Logo[350] PROGMEM = {};
+const unsigned char javascript_Logo[350] PROGMEM = {};
+const unsigned char jenkins_Logo[350] PROGMEM = {};
+const unsigned char jquery_Logo[350] PROGMEM = {};
+const unsigned char kubernetes_Logo[350] PROGMEM = {};
+const unsigned char mysql_Logo[350] PROGMEM = {};
+const unsigned char php_Logo[350] PROGMEM = {};
+const unsigned char pinterest_Logo[350] PROGMEM = {};
+const unsigned char python_Logo[350] PROGMEM = {};
+const unsigned char raspberry_pi_Logo[350] PROGMEM = {};
+const unsigned char ruby_programming_language_Logo[350] PROGMEM = {};
+const unsigned char united_nations_Logo[350] PROGMEM = {};
+const unsigned char air_Drone_Icon[350] PROGMEM = {};
+const unsigned char aircraft_Mechanic_Icon[350] PROGMEM = {};
+const unsigned char transport_airplane_Icon[350] PROGMEM = {};
+const unsigned char fighter_airplane1_Icon[350] PROGMEM = {};
+const unsigned char fighter_airplane2_Icon[350] PROGMEM = {};
+const unsigned char training_airplane_Icon[350] PROGMEM = {};
+const unsigned char airplane_landing_Icon[350] PROGMEM = {};
+const unsigned char helicopter1_Icon[350] PROGMEM = {};
+const unsigned char helicopter2_Icon[350] PROGMEM = {};
+const unsigned char armament_Icon[350] PROGMEM = {};
+const unsigned char navigation_compass_Icon[350] PROGMEM = {};
+const unsigned char radar_Icon[350] PROGMEM = {};
+const unsigned char radio_waves_Icon[350] PROGMEM = {};
+const unsigned char sonar_Icon[350] PROGMEM = {};
+const unsigned char address_Location_Icon[350] PROGMEM = {};
+const unsigned char bookmark_Icon[350] PROGMEM = {};
+const unsigned char checkmark_Icon[350] PROGMEM = {};
+const unsigned char close_Icon[350] PROGMEM = {};
+const unsigned char folder_Icon[350] PROGMEM = {};
+const unsigned char home_Icon[350] PROGMEM = {};
+const unsigned char idea_Icon[350] PROGMEM = {};
+const unsigned char listen_Icon[350] PROGMEM = {};
+const unsigned char menu_Icon[350] PROGMEM = {};
+const unsigned char services_Icon[350] PROGMEM = {};
+const unsigned char settings_Icon[350] PROGMEM = {};
+const unsigned char shield_Icon[350] PROGMEM = {};
+const unsigned char sound_bars_Icon[350] PROGMEM = {};
+const unsigned char speech_bubble_Icon[350] PROGMEM = {};
+const unsigned char unavailable_Icon[350] PROGMEM = {};
+const unsigned char ufo_Icon[350] PROGMEM = {};
+const unsigned char sub_red_october_Icon[350] PROGMEM = {};
+
+const uint8_t frameCount = 28;
+const uint8_t height_width1 = 48;
+const uint8_t height_width2 = 50;
+const uint8_t totalcharAnimArray = 5;     // ensure this variable is the same as the charArrayAnimation array size
+const uint8_t totalcharNonAnimArray = 55; // ensure this variable is the same as the charArrayNonAnimation array size
+
+template <typename T>
+void CopyArrayStatusToDisplay(const T *array, uint8_t i) {
+    u8g2.clearBuffer();
+    u8g2.home();
+    u8g2.setCursor(3, oled_LineH * 2 + 2);
+    u8g2.print(array[i].name);
+    u8g2.setCursor(3, oled_LineH * 3 + 2);
+    u8g2.print("has been written to");
+    u8g2.setCursor(3, oled_LineH * 4 + 2);
+    u8g2.print("the SD card.");
+    u8g2.sendBuffer(); // Send it out
+}; // end Displaying the action function
+
+struct Icon {
+    const unsigned char *data;
+    const uint8_t width;
+    const uint8_t height;
+    const String name;
+    const char *fileName;
+};
+
+Icon charArrayNonAnimation[55]{
+    {adhd_Logo, height_width2, height_width2, "ADHD Logo", "/adhdLogo.bin"},                                      //     framesInfo[0]. == {ADHD_Logo, 50, 50, "ADHD LOGO"},
+    {arduino_Logo, 128, 64, "Arduino Logo", "/ardLogo.bin"},                                                      //     framesInfo[1]. == {arduino_Logo, 128, 64, "Arduino Logo"},
+    {arduino_Logo2, height_width2, height_width2, "Arduino Logo", "/ardLogo2.bin"},                               //     framesInfo[2]. == {arduino_Logo2, 50, 50, "Arduino Logo"},
+    {amd_Logo, height_width2, height_width2, "AMD Logo", "/amd_Logo.bin"},                                        //     framesInfo[3]. == {amd_Logo, 50, 50, "AMD Logo"},
+    {autism_Logo, height_width2, height_width2, "Autism Logo", "/autiLogo.bin"},                                  //     framesInfo[4]. == {autism_Logo, 50, 50, "Autism Logo"},
+    {c_plus_plus_Logo, height_width2, height_width2, "C++ Logo", "/cpp_Logo.bin"},                                //     framesInfo[5]. == {c_plus_plus_Icon, 50, 50, "C++ ICON"},
+    {codepen_Logo, height_width2, height_width2, "CodePen Logo", "/cdpnLogo.bin"},                                //     framesInfo[6]. == {codepen_Icon, 50, 50, "CodePen ICON"},
+    {css3_Logo, height_width2, height_width2, "CSS 3 Logo", "/css3Logo.bin"},                                     //     framesInfo[7]. == {css3_Icon, 50, 50, "CSS 3 ICON"},
+    {docker_Logo, height_width2, height_width2, "Docker Logo", "/dockLogo.bin"},                                  //     framesInfo[8]. == {docker_Icon, 50, 50, "Docker ICON"},
+    {git_Logo, height_width2, height_width2, "GIT Logo", "/gitLogo.bin"},                                         //     framesInfo[9]. == {git_Icon, 50, 50, "GIT ICON"},
+    {github_Logo, height_width2, height_width2, "GitHub Logo", "/gthbLogo.bin"},                                  //     framesInfo[10]. == {github_Icon, 50, 50, "GitHub ICON"},
+    {html5_Logo, height_width2, height_width2, "HTML 5 Logo", "/htmlLogo.bin"},                                   //     framesInfo[11]. == {html5_Icon, 50, 50, "HTML 5 ICON"},
+    {java_Logo, height_width2, height_width2, "Java Logo", "/javaLogo.bin"},                                      //     framesInfo[12]. == {java_Icon, 50, 50, "Java ICON"},
+    {javascript_Logo, height_width2, height_width2, "JavaScript Logo", "/js_Logo.bin"},                           //     framesInfo[13]. == {javascript_Icon, 50, 50, "JavaScript ICON"},
+    {jenkins_Logo, height_width2, height_width2, "Jenkins Logo", "/jnksLogo.bin"},                                //     framesInfo[14]. == {jenkins_Icon, 50, 50, "Jenkins ICON"},
+    {jquery_Logo, height_width2, height_width2, "JQuery Logo", "/jquyLogo.bin"},                                  //     framesInfo[15]. == {jquery_Icon, 50, 50, "JQuery ICON"},
+    {kubernetes_Logo, height_width2, height_width2, "Kubernetes Logo", "/kubsLogo.bin"},                          //     framesInfo[16]. == {kubernetes_Icon, 50, 50, "Kubernetes ICON"},
+    {mysql_Logo, height_width2, height_width2, "MySQL Logo", "/mysqlogo.bin"},                                    //     framesInfo[17]. == {mysql_Logo, 50, 50, "MySQL Logo"},
+    {php_Logo, height_width2, height_width2, "php Logo", "/phpLogo.bin"},                                         //     framesInfo[18]. == {php_Logo, 50, 50, "php Logo"},
+    {pinterest_Logo, height_width2, height_width2, "Pinterest Logo", "/prstLogo.bin"},                            //     framesInfo[19]. == {pinterest, 50, 50, "Pinterest"},
+    {python_Logo, height_width2, height_width2, "Python Logo", "/pyt_Logo.bin"},                                  //     framesInfo[20]. == {python_Icon, 50, 50, "Python ICON"},
+    {raspberry_pi_Logo, height_width2, height_width2, "Raspberry Pi Logo", "/rspiLogo.bin"},                      //     framesInfo[21]. == {raspberry_pi_Logo, 50, 50, "Raspberry Pi Logo"},
+    {ruby_programming_language_Logo, height_width2, height_width2, "Ruby Programming Language", "/rubyLogo.bin"}, //     framesInfo[22]. == {ruby_programming_language, 50, 50, "Ruby Programming Language"},
+    {united_nations_Logo, height_width2, height_width2, "United Nations Logo", "/un_Logo.bin"},                   //     framesInfo[23]. == {united_nations_Icon, 50, 50, "United Nations Icon"},
+    {air_Drone_Icon, height_width2, height_width2, "Air Drone ICON", "/airDIcon.bin"},                            //     framesInfo[24]. == {air_Drone, 50, 50, "Air Drone"},
+    {aircraft_Mechanic_Icon, height_width2, height_width2, "Aircraft Mechanic ICON", "/acMcIcon.bin"},            //     framesInfo[25]. == {aircraft_Mechanic, 50, 50, "Aircraft Mechanic"},
+    {transport_airplane_Icon, height_width2, height_width2, "Transport Aircraft ICON", "/tpt_Icon.bin"},          //     framesInfo[26]. == {transport_airplane, 50, 50, "Transport Aircraft"},
+    {fighter_airplane1_Icon, height_width2, height_width2, "Fighter Aircraft #1 ICON", "/fgt1Icon.bin"},          //     framesInfo[27]. == {fighter_airplane1, 50, 50, "Fighter Aircraft #1"},
+    {fighter_airplane2_Icon, height_width2, height_width2, "Fighter Aircraft #2 ICON", "/fgt2Icon.bin"},          //     framesInfo[28]. == {fighter_airplane2, 50, 50, "Fighter Aircraft #2"},
+    {training_airplane_Icon, height_width2, height_width2, "Training Aircraft ICON", "/trg_Icon.bin"},            //     framesInfo[29]. == {training_airplane, 50, 50, "Training Aircraft"},
+    {airplane_landing_Icon, height_width2, height_width2, "Airplane Landing ICON", "/aldgIcon.bin"},              //     framesInfo[30]. == {airplane_landing, 50, 50, "Airplane Landing ICON"},
+    {helicopter1_Icon, height_width2, height_width2, "Helicopter #1 ICON", "/hel1Icon.bin"},                      //     framesInfo[31]. == {helicopter1, 50, 50, "Helicopter #1"},
+    {helicopter2_Icon, height_width2, height_width2, "Helicopter #2 ICON", "/hel2Icon.bin"},                      //     framesInfo[32]. == {helicopter2, 50, 50, "Helicopter #2"},
+    {armament_Icon, height_width2, height_width2, "Armament ICON", "/arm_Icon.bin"},                              //     framesInfo[33]. == {armament, 50, 50, "Armament"},
+    {navigation_compass_Icon, height_width2, height_width2, "Navigation Compass ICON", "/nav_Icon.bin"},          //     framesInfo[34]. == {navigation_compass, 50, 50, "Navigation Compass"},
+    {radar_Icon, height_width2, height_width2, "Radar ICON", "/rdr_Icon.bin"},                                    //     framesInfo[35]. == {radar, 50, 50, "Radar"},
+    {radio_waves_Icon, height_width2, height_width2, "Radio Waves ICON", "/rad_Icon.bin"},                        //     framesInfo[36]. == {radio_waves, 50, 50, "Radio Waves"},
+    {sonar_Icon, height_width2, height_width2, "Sonar ICON", "/snr_Icon.bin"},                                    //     framesInfo[37]. == {sonar, 50, 50, "Sonar"},
+    {address_Location_Icon, height_width2, height_width2, "Address Location ICON", "/adLoIcon.bin"},              //     framesInfo[38]. == {address_Location, 50, 50, "Address Location"},
+    {bookmark_Icon, height_width2, height_width2, "Bookmark ICON", "/bookIcon.bin "},                             //     framesInfo[39]. == {bookmark_Icon, 50, 50, "Bookmark ICON"},
+    {checkmark_Icon, height_width2, height_width2, "Checkmark OK ICON", "/chk_Icon.bin"},                         //     framesInfo[40]. == {checkmark_OK_Icon, 50, 50, "Checkmark OK ICON"},
+    {close_Icon, height_width2, height_width2, "Close ICON", "/cls_Icon.bin"},                                    //     framesInfo[41]. == {close_Icon, 50, 50, "Close ICON"},
+    {folder_Icon, height_width2, height_width2, "Folder ICON", "/fld_Icon.bin"},                                  //     framesInfo[42]. == {folder_Icon, 50, 50, "Folder ICON"},
+    {home_Icon, height_width2, height_width2, "Home ICON", "/homeIcon.bin"},                                      //     framesInfo[43]. == {home_Icon, 50, 50, "Home ICON"},
+    {idea_Icon, height_width2, height_width2, "Idea ICON", "/ideaIcon.bin"},                                      //     framesInfo[44]. == {idea_Icon, 50, 50, "Idea ICON"},
+    {listen_Icon, height_width2, height_width2, "Listen ICON", "/lst_Icon.bin"},                                  //     framesInfo[45]. == {listen_Icon, 50, 50, "Listen ICON"},
+    {menu_Icon, height_width2, height_width2, "Menu ICON", "/menuIcon.bin"},                                      //     framesInfo[46]. == {menu_Icon, 50, 50, "Menu ICON"},
+    {services_Icon, height_width2, height_width2, "Services ICON", "/svs_Icon.bin"},                              //     framesInfo[47]. == {services_Icon, 50, 50, "Services ICON"},
+    {settings_Icon, height_width2, height_width2, "Settings ICON", "/set_Icon.bin"},                              //     framesInfo[48]. == {settings_Icon, 50, 50, "Settings ICON"},
+    {shield_Icon, height_width2, height_width2, "Shield ICON", "/shldIcon.bin"},                                  //     framesInfo[49]. == {shield_Icon, 50, 50, "Shield ICON"},
+    {sound_bars_Icon, height_width2, height_width2, "Sound Bars ICON", "/snd_Icon.bin"},                          //     framesInfo[50]. == {sound_bars, 50, 50, "Sound Bars"},
+    {speech_bubble_Icon, height_width2, height_width2, "Speech Bubble ICON", "/sph_Icon.bin"},                    //     framesInfo[51]. == {speech_bubble, 50, 50, "Speech Bubble"},
+    {unavailable_Icon, height_width2, height_width2, "Unavailable ICON", "/unavIcon.bin"},                        //     framesInfo[52]. == {unavailable_Icon, 50, 50, "Unavailable Icon"},
+    {ufo_Icon, height_width2, height_width2, "UFO ICON", "/ufo_Icon.bin"},                                        //     framesInfo[53]. == {ufo, 50, 50, "UFO"},
+    {sub_red_october_Icon, height_width2, height_width2, "Red October Submarine ICON", "/sub_Icon.bin"},          //     framesInfo[54]. == {sub_red_october, 50, 50, "Red October Submarine"},
+};
+
+void writeIconToFile(const Icon &icon, const char *fileName) {
+    File file = SD.open(fileName, FILE_WRITE); // +1 to remove the / from the file name
+    if (!file) {
+        Serial.println("Could not open file for writing");
+        return;
+    }
+    int size = icon.height * icon.width;
+    file.write(icon.data, size);
+    file.close();
+}; // end of writeIconToFile function
+
+void fileInput(Icon *array) {
+    for (uint8_t i = 0; i < totalcharNonAnimArray; i++) {
+        writeIconToFile(array[i], array[i].fileName);
+        CopyArrayStatusToDisplay(array, i);
+        bLED = !bLED; // toggle LED State
+        digitalWrite(LED_BUILTIN, bLED);
+        delay(250);
+    }
+}; // end of fileInput function
+
+void loadIconBinFile(const char *filename, uint8_t **buffer, size_t *size) {
+    if (!SD.begin()) {
+        Serial.println("Failed to initialize SD card");
+        return;
+    }
+    File file = SD.open(filename, FILE_READ);
+    if (!file) {
+        Serial.println("Failed to open file");
+        return;
+    }
+    *size = file.size();
+    *buffer = new uint8_t[*size];
+    if (*buffer == nullptr) {
+        Serial.println("Failed to allocate memory");
+        return;
+    }
+    for (size_t i = 0; i < *size; i++) {
+        (*buffer)[i] = file.read();
+    }
+    file.close();
+}; // end loadBinFile function
+
+void smallFramechar(uint8_t *charGraphicsBuffer) {
+    display.drawBitmap(0, 16, charGraphicsBuffer, height_width2, height_width2, 1);
+    display.display();
+}; // end to display small framed graphics at the location just below the colour line
+
+void charArray_NonAnim() {
+    uint8_t *charGraphicsBuffer;
+    size_t charGraphicsSize;
+    for (uint8_t i = 0; i < totalcharNonAnimArray; i++) {
+        loadIconBinFile(charArrayNonAnimation[i].fileName, &charGraphicsBuffer, &charGraphicsSize);
+        int effectime = 20;
+        display.clearDisplay();
+        while (effectime > 0) {
+            bLED = !bLED;
+            digitalWrite(LED_BUILTIN, bLED);
+            if (charArrayNonAnimation[i].width <= 50 || charArrayNonAnimation[i].height <= 50) {
+                u8g2.clearBuffer();
+                u8g2.home();
+                u8g2.setCursor(3, oled_LineH * 1 + 2);
+                u8g2.print(charArrayNonAnimation[i].name);
+                u8g2.sendBuffer();
+                smallFramechar(charGraphicsBuffer);
+            }
+            else {
+                display.drawBitmap(0, 0, charGraphicsBuffer, charArrayNonAnimation[i].width, charArrayNonAnimation[i].height, 1);
+                display.display();
+            }
+            effectime--;
+        }
+        delete[] charGraphicsBuffer;
+    }
+    delay(1000);
+}; // end charArray_NonAnim function (to display all the char graphics loaded)
+
+struct Animation {
+    const unsigned char* data;
+    const uint8_t width;
+    const uint8_t height;
+    const String name;
+    const int dataSize;
+    const char *fileName;
+    const int dataLength;
+};
+
+Animation charArrayAnimation[5] {
+    {ambulance_Anim[0], height_width2, height_width2, "Ambulance", sizeof(ambulance_Anim[0]), "/amb_Anim.bin", 350},
+    {download_Anim[0], height_width1, height_width1, "Download", sizeof(download_Anim[0]), "/dwnlAnim.bin", 288},
+    {upload_Anim[0], height_width1, height_width1, "Upload", sizeof(upload_Anim[0]), "/upldAnim.bin", 288},
+    {heartbeat1_Anim[0], height_width2, height_width2, "Black Heartbeat", sizeof(heartbeat1_Anim[0]), "/hblkAnim.bin", 350},
+    {heartbeat2_Anim[0], height_width2, height_width2, "White Heartbeat", sizeof(heartbeat2_Anim[0]), "/hbwhAnim.bin", 350},
+};
+
+void writeAnimationToFile(const Animation &animation) {
+    File file = SD.open(animation.fileName, FILE_WRITE);
+    if (!file) {
+        Serial.println("Could not open file for writing");
+        return;
+    }
+    for (int i = 0; i < frameCount * animation.dataSize; i++) {
+        file.write(animation.data[i]);
+    }
+    file.close();
+}; // end of writeAnimationToFile function
+
+void fileInput(Animation *array) {
+    for (uint8_t i = 0; i < totalcharAnimArray; i++) {
+        // Allocate memory for a 1D array
+        array[i].data = new unsigned char[frameCount * array[i].dataSize];
+        if (array[i].data == nullptr) {
+            Serial.println("Memory allocation failed for animation: " + String(i));
+            return;
+        }
+        Serial.println("Memory allocation successful for animation: " + String(i));
+        try {
+            writeAnimationToFile(array[i]);
+            CopyArrayStatusToDisplay(array, i);
+        } catch (std::bad_alloc &ba) {
+            // Handle memory allocation failure
+            Serial.println("Memory allocation failed: " + String(ba.what()));
+            return;
+        } catch (...) {
+            // If an exception is thrown, deallocate memory and rethrow the exception
+            delete[] array[i].data;
+            throw;
+        }
+    }
+}; // end of fileInput function
+
+void readAnimationFromFile(Animation &animation) {
+    File file = SD.open(animation.fileName, FILE_READ);
+    if (!file) {
+        Serial.println("Could not open file for reading");
+        return;
+    }
+    Serial.println("Allocating memory for tempData: " + String(animation.height * (animation.width + 1)));
+    char **tempData = new char *[animation.height];
+    for (int i = 0; i < animation.height; i++) {
+        if (tempData == nullptr) {
+            Serial.println("Failed to allocate memory for tempData");
+            return;
+        }
+            tempData[i] = new char[animation.width + 1];
+            file.readBytes(tempData[i], animation.width);
+            tempData[i][animation.width] = '\0'; // Null-terminate the array
+            Serial.println("Read data: " + String(tempData[i]));
+            for (int j = 0; j < animation.width; j++) {
+                Serial.print((unsigned char)tempData[i][j], HEX);
+                Serial.print(" ");
+            }
+            Serial.println();
+        }
+    file.close();
+    Serial.println("Allocating memory for data1D: " + String(animation.height * animation.width));
+    char *data1D = new char[animation.height * animation.width];
+    if (data1D == nullptr) {
+        Serial.println("Failed to allocate memory for data1D");
+        return;
+    }
+    for (int i = 0; i < animation.height; i++) {
+        for (int j = 0; j < animation.width; j++) {
+            data1D[i * animation.width + j] = tempData[i][j];
+        }
+        delete[] tempData[i];
+    }
+    delete[] tempData;
+    animation.data = reinterpret_cast<const unsigned char *>(data1D);
+    delete[] data1D;
+    const char *temp = reinterpret_cast<const char *>(animation.data);
+    Serial.println("Assigned data: " + String(temp));
+}; // end of readAnimationFromFile function
+
+void displayAnimation(const Animation &animation) {
+    Serial.println("Starting char Array Animation loop");
+    for (int index = 0; index < totalcharAnimArray; index++) {
+        Serial.println("Displaying animation: " + String(animation.name));
+        for (int i = 0; i < frameCount; i++) {
+            display.clearDisplay();
+            display.drawBitmap(0, 0, &animation.data[i * animation.dataSize], animation.width, animation.height, 1);
+            display.display();
+            Serial.println("Displayed frame: " + String(i));
+        }
+        bLED = !bLED;
+        digitalWrite(LED_BUILTIN, bLED);
+    }
+    Serial.println("ending char Array Animation loop");
+}; // end of displayAnimation function
+
+void verifyAllAnimations(Animation *array, uint8_t totalcharAnimArray) {
+    for (uint8_t i = 0; i < totalcharAnimArray; i++) {
+        Animation tempAnimation = array[i];
+        readAnimationFromFile(tempAnimation);
+        for (uint8_t j = 0; j < array[i].dataSize; j++) {
+            if (tempAnimation.data[j] != array[i].data[j]) {
+                Serial.println("Verification failed for animation: " + String(array[i].name));
+                return;
+            }
+        }
+        displayAnimation(array[i]);
+        Serial.println("Verification successful for animation: " + String(array[i].name));
+    }
+}; // end of verifyAllAnimations function
+
+void DrawLinesAndGraphicsFrame(int FramesPerSecond) {
+    u8g2.clearBuffer();
+    u8g2.home();
+    u8g2.setCursor(3, oled_LineH * 2 + 2);
+    u8g2.print("Hello");
+    u8g2.setCursor(3, oled_LineH * 3 + 2);
+    u8g2.print("World");
+    u8g2.setCursor(3, oled_LineH * 4 + 2);
+    u8g2.printf("%03d \n", FramesPerSecond); // Placeholder for framerate
+    u8g2.drawFrame(0, 0, u8g2.getWidth(), u8g2.getHeight()); // Draw a border around the display
+    for (int x = 0; x < u8g2.getWidth(); x += 4) {
+        u8g2.drawLine(x, 0, u8g2.getWidth() - x, u8g2.getHeight());
+    }
+    const int reticleY = u8g2.getHeight() / 2;           // Vertical center of display
+    const int reticleR = u8g2.getHeight() / 4 - 2;       // Slightly less than 1/4 screen height
+    const int reticleX = u8g2.getWidth() - reticleR - 8; // Right-justified with a small margin
+    for (int r = reticleR; r > 0; r -= 3) { // draw a series of nested circles
+        u8g2.drawCircle(reticleX, reticleY, r);
+        u8g2.drawHLine(reticleX - reticleR - 5, reticleY, 2 * reticleR + 10); // H line through reticle center
+        u8g2.drawVLine(reticleX, reticleY - reticleR - 5, 2 * reticleR + 10); // V line through reticle center
+    }
+    u8g2.sendBuffer(); // Send it out
+} // end draw lines, graphics function
+
+double FramesPerSecond(double seconds) {
+    static double framesPerSecond;
+    framesPerSecond = (framesPerSecond * 0.9) + (1.0 / seconds * 0.1);
+    return framesPerSecond;
+}; // end FramesPerSecond function
+
+
+void listDir(fs::FS &fs, const char *dirname, uint8_t levels) {
+    Serial.printf("Listing directory: %s\n", dirname);
+    File root = fs.open(dirname);
+    if (!root) {
+        Serial.println("Failed to open directory");
+        return;
+    } 
+    if (!root.isDirectory()) {
+        Serial.println("Not a directory");
+        return;
+    }
+    File file = root.openNextFile();
+    std::vector<String> files;
+    while (file) {
+        if (file.isDirectory()) {
+            Serial.print("  DIR : ");
+            Serial.println(file.name());
+            if (levels) {
+                listDir(fs, file.name(), levels - 1);
+            }
+        }
+        else {
+            files.push_back(String(file.name()) + " - " + String(file.size()) + " bytes");
+        }
+        file = root.openNextFile();
+    }
+    std::sort(files.begin(), files.end());
+    for (const String &file : files) {
+        Serial.println(file);
+    }
+};
+
+void setup() {
+    delay(1000); // give me time to bring up serial monitor
+    Serial.begin(115200);
+    Serial.println("Starting setup");
+    pinMode(LED_BUILTIN, OUTPUT); // relying on GPIO2 LED to light up on MB
+    u8g2.begin();
+    u8g2.clear();
+    u8g2.setFont(u8g2_font_profont10_tf);
+    oled_LineH = u8g2.getFontAscent() + u8g2.getFontAscent();
+    display.begin(SSD1306_SWITCHCAPVCC, SCREEN_I2C_ADDR);
+    display.clearDisplay();
+    spi.begin(SCK, MISO, MOSI, CS);
+    if (!SD.begin(CS)) {
+        Serial.println("Card Mount Failed");
+        return;
+    }
+    uint8_t cardType = SD.cardType();
+    if (cardType == CARD_NONE) {
+        Serial.println("No SD card attached");
+        return;
+    }
+    Serial.print("SD Card Type: ");
+    if (cardType == CARD_MMC) {
+        Serial.println("MMC");
+    }
+    else if (cardType == CARD_SD) {
+        Serial.println("SDSC");
+    }
+    else if (cardType == CARD_SDHC) {
+        Serial.println("SDHC");
+    }
+    else {
+        Serial.println("UNKNOWN");
+    }
+    uint64_t cardSize = SD.cardSize() / (1024 * 1024);
+    Serial.printf("SD Card Size: %lluMB\n", cardSize);
+    Serial.println("Setup complete");
+}; // end setup function
+
+void loop() {
+    Serial.println("SD Card content before function");
+    listDir(SD, file0, 0);
+    if (SD.begin(CS)) {
+        fileInput(charArrayNonAnimation);
+        fileInput(charArrayAnimation);
+    }
+    else {
+        Serial.println("Failed to mount SD card");
+    }
+    Serial.println("SD Card content after function");
+    listDir(SD, file0, 0);
+    Serial.println("Verifying all saved files");
+    Serial.println("starting non animation function");
+    charArray_NonAnim();
+    Serial.println("starting animation function");
+    verifyAllAnimations(charArrayAnimation, totalcharAnimArray);
+    int fps = 0;
+    for (;;) {
+        bLED = !bLED; // toggle LED State
+        digitalWrite(LED_BUILTIN, bLED);
+        double dStart = millis() / 1000.0; // record the start time
+        DrawLinesAndGraphicsFrame(fps);
+        double dEnd = millis() / 1000.0; // record the completion time
+        fps = FramesPerSecond(dEnd - dStart);
+    }
+}; // end loop function
